@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Poll Studio (Offline / Client-Side)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #eef2f6;
+        color: #1e293b;
+        padding: 20px;
+        min-height: 100vh;
+    }
+    .app-layout {
+        max-width: 1440px;
+        margin: 0 auto;
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+    }
+    .studio-header {
+        background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+        padding: 20px 30px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 15px; }
+    .brand-icon {
+        font-size: 32px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 10px;
+        border-radius: 14px;
+        backdrop-filter: blur(5px);
+    }
+    .brand-text h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+    .brand-text p { font-size: 13px; opacity: 0.9; }
+    .progress-container {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 12px 20px;
+        border-radius: 14px;
+        backdrop-filter: blur(10px);
+        min-width: 280px;
+    }
+    .progress-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    .progress-bar-bg {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        background: #34d399;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    .respondent-card {
+        padding: 18px 30px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .input-group { display: flex; align-items: center; gap: 12px; }
+    .input-icon { font-size: 20px; }
+    .input-group label {
+        font-weight: 700;
+        font-size: 15px;
+        color: #334155;
+        white-space: nowrap;
+    }
+    .input-group input {
+        flex: 1;
+        max-width: 450px;
+        padding: 12px 18px;
+        border: 2px solid #cbd5e1;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 15px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .input-group input:focus {
+        border-color: #0284c7;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+    .studio-workspace {
+        display: grid;
+        grid-template-columns: 2.2fr 1fr;
+        gap: 25px;
+        padding: 25px;
+        background: #f1f5f9;
+    }
+    .workspace-section {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+    }
+    .section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f1f5f9;
+    }
+    .section-title h2 { font-size: 18px; font-weight: 700; color: #0f172a; }
+    .badge {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        max-height: 680px;
+        overflow-y: auto;
+        padding-right: 6px;
+    }
+    .category-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .category-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .card-header {
+        font-weight: 700;
+        font-size: 14px;
+        color: #1e293b;
+        line-height: 1.3;
+    }
+    .drop-zone {
+        min-height: 70px;
+        border: 2px dashed #cbd5e1;
+        border-radius: 10px;
+        background: #fafafa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        transition: all 0.2s ease;
+    }
+    .drop-zone.drag-over {
+        background: #f0f9ff;
+        border-color: #0284c7;
+        transform: scale(1.02);
+    }
+    .drop-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: #94a3b8;
+        font-size: 11px;
+        text-align: center;
+    }
+    .plus-icon { font-size: 16px; font-weight: bold; }
+    .search-box { position: relative; margin-bottom: 15px; }
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 14px;
+        color: #94a3b8;
+    }
+    .search-box input {
+        width: 100%;
+        padding: 10px 12px 10px 36px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+    }
+    .blocks-palette {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        max-height: 600px;
+        overflow-y: auto;
+        padding-right: 6px;
+    }
+    .teacher-block-card {
+        background: var(--card-color, #3b82f6);
+        color: #ffffff;
+        padding: 10px 12px;
+        border-radius: 12px;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        user-select: none;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        width: 100%;
+    }
+    .teacher-block-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+    }
+    .teacher-block-card.dragging { opacity: 0.5; cursor: grabbing; }
+    .teacher-block-card.selected { outline: 3px solid #f59e0b; }
+    .avatar-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+    .block-info { flex: 1; min-width: 0; }
+    .teacher-title {
+        font-weight: 700;
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+    .drag-handle { opacity: 0.6; font-size: 12px; }
+    .categories-grid::-webkit-scrollbar, .blocks-palette::-webkit-scrollbar { width: 6px; }
+    .categories-grid::-webkit-scrollbar-thumb, .blocks-palette::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 4px;
+    }
+    .footer-action-bar {
+        padding: 20px 30px;
+        background: #ffffff;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: center;
+    }
+    .btn-submit-modern {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        color: white;
+        padding: 16px 40px;
+        border: none;
+        border-radius: 14px;
+        font-size: 16px;
+        font-family: inherit;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        width: 100%;
+        max-width: 420px;
+    }
+    .btn-submit-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
+    }
+
+    /* HALAMAN TERIMA KASIH & DOWNLOAD SQL */
+    #thankYouView {
+        display: none;
+        padding: 60px 25px;
+        text-align: center;
+        background: #ffffff;
+    }
+    .thank-you-box {
+        max-width: 540px;
+        margin: 0 auto;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 40px 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    }
+    .check-badge {
+        width: 72px;
+        height: 72px;
+        background: #d1fae5;
+        color: #059669;
+        font-size: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px auto;
+    }
+    .thank-you-box h2 {
+        font-size: 26px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 10px;
+    }
+    .thank-you-box p {
+        font-size: 14px;
+        color: #475569;
+        line-height: 1.6;
+        margin-bottom: 25px;
+    }
+    .btn-download-sql {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 16px 32px;
+        border: none;
+        border-radius: 14px;
+        font-size: 16px;
+        font-family: inherit;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+    }
+    .btn-download-sql:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+    .file-info-tag {
+        display: inline-block;
+        margin-top: 14px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        background: #e2e8f0;
+        padding: 4px 12px;
+        border-radius: 8px;
+    }
+    
+    /* RESPONSIVE MOBILE OPTIMIZATION */
+    @media (max-width: 1200px) {
+        .categories-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 992px) {
+        .studio-workspace { grid-template-columns: 1fr; }
+        .categories-grid { grid-template-columns: repeat(2, 1fr); }
+        .blocks-palette { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 640px) {
+        body { padding: 5px; }
+        .app-layout { border-radius: 12px; }
+        .studio-header { padding: 12px 15px; flex-direction: column; align-items: flex-start; gap: 10px; }
+        .brand-icon { font-size: 24px; padding: 6px; }
+        .brand-text h1 { font-size: 18px; }
+        .brand-text p { font-size: 11px; }
+        .progress-container { width: 100%; padding: 8px 12px; min-width: auto; }
+        .progress-info { font-size: 11px; }
+        .respondent-card { padding: 10px 15px; }
+        .input-group label { font-size: 12px; }
+        .input-group input { padding: 8px 12px; font-size: 13px; }
+        .studio-workspace { padding: 10px; gap: 12px; }
+        .workspace-section { padding: 12px; border-radius: 12px; }
+        .section-title { margin-bottom: 10px; padding-bottom: 8px; }
+        .section-title h2 { font-size: 14px; }
+        .badge { font-size: 10px; padding: 2px 8px; }
+        .categories-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px; max-height: 450px; }
+        .category-card { padding: 8px; border-radius: 8px; gap: 6px; }
+        .card-header { font-size: 11px; line-height: 1.2; }
+        .drop-zone { min-height: 48px; padding: 4px; border-radius: 6px; }
+        .drop-placeholder { font-size: 9px; gap: 2px; }
+        .plus-icon { font-size: 12px; }
+        .search-box { margin-bottom: 10px; }
+        .search-box input { padding: 6px 10px 6px 30px; font-size: 11px; }
+        .search-icon { left: 8px; font-size: 12px; }
+        .blocks-palette { grid-template-columns: repeat(2, 1fr) !important; gap: 6px; max-height: 300px; }
+        .teacher-block-card { padding: 6px 8px; border-radius: 8px; gap: 6px; }
+        .avatar-circle { width: 24px; height: 24px; font-size: 10px; }
+        .teacher-title { font-size: 10px; }
+        .drag-handle { font-size: 10px; }
+        .footer-action-bar { padding: 12px 15px; }
+        .btn-submit-modern { padding: 12px 20px; font-size: 14px; border-radius: 10px; }
+        #thankYouView { padding: 30px 15px; }
+        .thank-you-box { padding: 25px 20px; }
+        .thank-you-box h2 { font-size: 20px; }
+    }
+    </style>
+</head>
+<body>
+
+<div class="app-layout">
+    <!-- Studio Header -->
+    <header class="studio-header">
+        <div class="brand">
+            <div class="brand-icon">🧩</div>
+            <div class="brand-text">
+                <h1>Teacher Poll Studio</h1>
+                <p>Pasangkan guru favoritmu pada kategori yang sesuai!</p>
+            </div>
+        </div>
+        <div class="progress-container" id="progressHeaderBox">
+            <div class="progress-info">
+                <span>Progress Polling</span>
+                <span class="progress-counter"><strong id="filledCount">0</strong> / <span id="totalCatDisplay">31</span> Terisi</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressBar" style="width: 0%;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- VIEW 1: FORM POLLING -->
+    <div id="votingView">
+        <form id="pollForm">
+            <!-- Respondent Name Bar -->
+            <div class="respondent-card">
+                <div class="input-group">
+                    <span class="input-icon">👤</span>
+                    <label for="nama">Nama Responden:</label>
+                    <input type="text" id="nama" name="respondent_name" required placeholder="Ketik nama lengkap Anda di sini..." autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Main Interactive Workspace -->
+            <div class="studio-workspace">
+                <!-- LEFT COLUMN: Categories Grid Container -->
+                <div class="workspace-section left-section">
+                    <div class="section-title">
+                        <h2>🏷️ Kategori Polling</h2>
+                        <span class="badge" id="catCountBadge">31 Kategori</span>
+                    </div>
+                    <div class="categories-grid" id="categoriesGrid"></div>
+                </div>
+
+                <!-- RIGHT COLUMN: Teacher Blocks Palette -->
+                <div class="workspace-section right-section">
+                    <div class="section-title">
+                        <h2>📋 Blocks Palette</h2>
+                        <span class="badge badge-blue" id="teacherCountBadge">31 Guru</span>
+                    </div>
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchTeacher" placeholder="Cari nama guru...">
+                    </div>
+                    <div class="blocks-palette" id="teacherBlocks"></div>
+                </div>
+            </div>
+
+            <!-- Submit Footer Floating Bar -->
+            <div class="footer-action-bar">
+                <button type="submit" class="btn-submit-modern">
+                    <span>🚀 Selesai & Simpan Voting</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- VIEW 2: HALAMAN TERIMA KASIH & DOWNLOAD SQL -->
+    <div id="thankYouView">
+        <div class="thank-you-box">
+            <div class="check-badge">✓</div>
+            <h2>Terima Kasih Telah Mengisi Polling!</h2>
+            <p>Pilihan Anda telah berhasil direkam. Silakan klik tombol di bawah ini untuk mengunduh file SQL hasil polling Anda dan serahkan kepada panitia.</p>
+            <button type="button" id="btnDownloadSql" class="btn-download-sql">
+                <span>📥 Download File SQL</span>
+            </button>
+            <div>
+                <span class="file-info-tag" id="sqlFileNamePreview">File: responden.sql</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Data Master (Sesuai 100% dengan tabel categories & teachers di database.sql)
+const TEACHERS = [
+    { id: 1, name: 'Ms Maria' }, { id: 2, name: 'Sr Surya' }, { id: 3, name: 'Sr Putu' },
+    { id: 4, name: 'Sr Wayan' }, { id: 5, name: 'Ms Indah' }, { id: 6, name: 'Ms Evi' },
+    { id: 7, name: 'Ms Dita' }, { id: 8, name: 'Ms Reta' }, { id: 9, name: 'Sr Jordan' },
+    { id: 10, name: 'Sr Danu' }, { id: 11, name: 'Sr Sofyan' }, { id: 12, name: 'Ms Tya' },
+    { id: 13, name: 'Ms Hani' }, { id: 14, name: 'Sr Bagyo' }, { id: 15, name: 'Sr Gede' },
+    { id: 16, name: 'Ms Anggun' }, { id: 17, name: 'Sr Aris' }, { id: 18, name: 'Ms Tenny' },
+    { id: 19, name: 'Ms Ayu' }, { id: 20, name: 'Ls Dewi' }, { id: 21, name: 'Ls Shinta' },
+    { id: 22, name: 'Ls Liu' }, { id: 23, name: 'Ls Zhang' }, { id: 24, name: 'Ms Desak' },
+    { id: 25, name: 'Sr Nyoman' }, { id: 26, name: 'Sr Viktor' }, { id: 27, name: 'Sr Akbar' },
+    { id: 28, name: 'Ls Evelyn' }, { id: 29, name: 'Ms Nana' }, { id: 30, name: 'Sr Dama' },
+    { id: 31, name: 'Sr Wira' }, { id: 32, name: 'Ls Mega' }, { id: 33, name: 'Ls Adit' }
+];
+
+const CATEGORIES = [
+    { id: 1, code: 'terceria', label: 'Guru Terceria' },
+    { id: 2, code: 'teramah', label: 'Guru Teramah' },
+    { id: 3, code: 'terdisiplin', label: 'Guru Terdisiplin' },
+    { id: 4, code: 'tersabar', label: 'Guru Tersabar' },
+    { id: 5, code: 'terhumoris', label: 'Guru Terhumoris' },
+    { id: 6, code: 'terkreatif', label: 'Guru Terkreatif' },
+    { id: 7, code: 'terinspiratif', label: 'Guru Terinspiratif' },
+    { id: 8, code: 'terfavorit', label: 'Guru Terfavorit' },
+    { id: 9, code: 'terfashionable', label: 'Guru Terfashionable' },
+    { id: 10, code: 'tergaya', label: 'Guru Tergaya' },
+    { id: 11, code: 'tersenyum', label: 'Guru Tersenyum' },
+    { id: 12, code: 'tertegas', label: 'Guru Tertegas' },
+    { id: 13, code: 'terlucu', label: 'Guru Terlucu' },
+    { id: 14, code: 'terenerjik', label: 'Guru Terenerjik' },
+    { id: 15, code: 'terajin', label: 'Guru Terajin' },
+    { id: 16, code: 'terorganisir', label: 'Guru Terorganisir' },
+    { id: 17, code: 'terinovatif', label: 'Guru Terinovatif' },
+    { id: 18, code: 'terperhatian', label: 'Guru Terperhatian' },
+    { id: 19, code: 'terbaikhati', label: 'Guru Terbaik Hati' },
+    { id: 20, code: 'terkomunikatif', label: 'Guru Terkomunikatif' },
+    { id: 21, code: 'terheboh', label: 'Guru Terheboh' },
+    { id: 22, code: 'terkalem', label: 'Guru Terkalem' },
+    { id: 23, code: 'terkeibuan', label: 'Guru Terkeibuan' },
+    { id: 24, code: 'terkeayahan', label: 'Guru Terkeayahan' },
+    { id: 25, code: 'terupdate', label: 'Guru Terupdate' },
+    { id: 26, code: 'terwangi', label: 'Guru Terwangi' },
+    { id: 27, code: 'terawetmuda', label: 'Guru Terawet Muda' },
+    { id: 28, code: 'terinspirasiteknologi', label: 'Guru Terinspirasi Teknologi' },
+    { id: 29, code: 'terkompak', label: 'Guru Terkompak' },
+    { id: 30, code: 'terpagi', label: 'Guru Terpagi' },
+    { id: 31, code: 'multitalenta', label: 'Guru Multitalenta' },
+    { id: 32, code: 'terelate', label: 'Guru Terelate' },
+    { id: 33, code: 'terlegend', label: 'Guru Terlegend' }
+];
+
+const BG_COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6', '#f43f5e'];
+
+let generatedSqlContent = '';
+let generatedFileName = 'hasil_polling.sql';
+
+// Kunci navigasi back jika sudah selesai voting
+function lockBackNavigation() {
+    history.pushState({ locked: true }, '', location.href);
+    window.addEventListener('popstate', function () {
+        if (sessionStorage.getItem('poll_submitted') === 'true') {
+            history.pushState({ locked: true }, '', location.href);
+        }
+    });
+}
+
+// Tampilkan halaman selesai
+function showThankYouScreen(sqlContent, fileName) {
+    generatedSqlContent = sqlContent;
+    generatedFileName = fileName;
+    document.getElementById('votingView').style.display = 'none';
+    document.getElementById('progressHeaderBox').style.display = 'none';
+    document.getElementById('thankYouView').style.display = 'block';
+    document.getElementById('sqlFileNamePreview').textContent = 'File: ' + fileName;
+    lockBackNavigation();
+}
+
+// Trigger download file .sql
+function triggerSqlDownload(content, filename) {
+    const blob = new Blob([content], { type: 'application/sql;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+// Escape single quote untuk keamanan string SQL
+function escapeSqlString(str) {
+    return str.replace(/\\/g, '\\\\').replace(/'/g, "''");
+}
+
+// Format waktu YYYY-MM-DD HH:MM:SS lokal
+function getCurrentSqlTimestamp() {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Cek apakah user di sesi tab ini sudah pernah submit (mencegah kembali ke form via reload/back)
+    if (sessionStorage.getItem('poll_submitted') === 'true') {
+        const savedSql = sessionStorage.getItem('poll_sql_content') || '';
+        const savedFile = sessionStorage.getItem('poll_sql_filename') || 'hasil_polling.sql';
+        showThankYouScreen(savedSql, savedFile);
+        document.getElementById('btnDownloadSql').addEventListener('click', () => {
+            triggerSqlDownload(generatedSqlContent, generatedFileName);
+        });
+        return;
+    }
+
+    const categoriesGrid = document.getElementById('categoriesGrid');
+    const teacherBlocksContainer = document.getElementById('teacherBlocks');
+    const searchInput = document.getElementById('searchTeacher');
+    const filledCountElem = document.getElementById('filledCount');
+    const progressBar = document.getElementById('progressBar');
+
+    // Render Kartu Kategori
+    CATEGORIES.forEach(cat => {
+        const card = document.createElement('div');
+        card.className = 'category-card';
+        card.dataset.categoryId = cat.id;
+        card.innerHTML = `
+            <div class="card-header">${cat.label}</div>
+            <div class="drop-zone" id="drop-zone-${cat.id}">
+                <div class="drop-placeholder">
+                    <span class="plus-icon">+</span>
+                    <span>Drag Balok Guru Di Sini...</span>
+                </div>
+            </div>
+            <input type="hidden" name="cat_${cat.id}" id="input_cat_${cat.id}" required>
+        `;
+        categoriesGrid.appendChild(card);
+    });
+
+    // Render Balok Guru
+    TEACHERS.forEach((t, idx) => {
+        const color = BG_COLORS[idx % BG_COLORS.length];
+        const words = t.name.split(' ');
+        const initials = words.length > 1 
+            ? (words[0][0] + words[1][0]).toUpperCase() 
+            : t.name.substring(0, 2).toUpperCase();
+
+        const block = document.createElement('div');
+        block.className = 'teacher-block-card';
+        block.draggable = true;
+        block.dataset.teacherId = t.id;
+        block.dataset.name = t.name.toLowerCase();
+        block.id = `teacher-${t.id}`;
+        block.style.setProperty('--card-color', color);
+        block.innerHTML = `
+            <div class="avatar-circle">${initials}</div>
+            <div class="block-info">
+                <span class="teacher-title">${t.name}</span>
+            </div>
+            <span class="drag-handle">⋮⋮</span>
+        `;
+        teacherBlocksContainer.appendChild(block);
+    });
+
+    const teacherBlocks = document.querySelectorAll('.teacher-block-card');
+    const dropZones = document.querySelectorAll('.drop-zone');
+    const totalCategories = CATEGORIES.length;
+    let draggedBlock = null;
+    let selectedBlock = null;
+
+    function updateProgress() {
+        const filled = document.querySelectorAll('.drop-zone .teacher-block-card').length;
+        filledCountElem.textContent = filled;
+        const pct = (filled / totalCategories) * 100;
+        progressBar.style.width = pct + '%';
+    }
+
+    // Drag & Drop Events
+    teacherBlocks.forEach(block => {
+        block.addEventListener('dragstart', (e) => {
+            draggedBlock = block;
+            e.dataTransfer.setData('text/plain', block.dataset.teacherId);
+            setTimeout(() => block.classList.add('dragging'), 0);
+        });
+        block.addEventListener('dragend', () => {
+            block.classList.remove('dragging');
+        });
+
+        // Click/Tap Fallback (Mobile & Tablet)
+        block.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (block.parentElement.classList.contains('drop-zone')) {
+                const zone = block.parentElement;
+                const catId = zone.closest('.category-card').dataset.categoryId;
+                document.getElementById('input_cat_' + catId).value = '';
+                zone.innerHTML = '<div class="drop-placeholder"><span class="plus-icon">+</span><span>Drag Balok Guru Di Sini...</span></div>';
+                teacherBlocksContainer.appendChild(block);
+                block.classList.remove('selected');
+                updateProgress();
+                return;
+            }
+            teacherBlocks.forEach(b => b.classList.remove('selected'));
+            selectedBlock = block;
+            block.classList.add('selected');
+        });
+    });
+
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        });
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('drag-over');
+        });
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            if (draggedBlock) {
+                const existingBlock = zone.querySelector('.teacher-block-card');
+                if (existingBlock) {
+                    teacherBlocksContainer.appendChild(existingBlock);
+                }
+                zone.innerHTML = '';
+                zone.appendChild(draggedBlock);
+                const catId = zone.closest('.category-card').dataset.categoryId;
+                document.getElementById('input_cat_' + catId).value = draggedBlock.dataset.teacherId;
+                updateProgress();
+            }
+        });
+        zone.addEventListener('click', () => {
+            if (selectedBlock) {
+                const existingBlock = zone.querySelector('.teacher-block-card');
+                if (existingBlock) {
+                    teacherBlocksContainer.appendChild(existingBlock);
+                }
+                zone.innerHTML = '';
+                zone.appendChild(selectedBlock);
+                const catId = zone.closest('.category-card').dataset.categoryId;
+                document.getElementById('input_cat_' + catId).value = selectedBlock.dataset.teacherId;
+                selectedBlock.classList.remove('selected');
+                selectedBlock = null;
+                updateProgress();
+            }
+        });
+    });
+
+    // Live Search Filter
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        teacherBlocks.forEach(block => {
+            if (block.parentElement === teacherBlocksContainer) {
+                const name = block.dataset.name;
+                block.style.display = name.includes(query) ? 'flex' : 'none';
+            }
+        });
+    });
+
+    // Submit & Generate SQL File
+    document.getElementById('pollForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const rawName = document.getElementById('nama').value.trim();
+        if (!rawName) {
+            alert('Harap isi Nama Responden terlebih dahulu!');
+            return;
+        }
+
+        // Validasi semua 31 kategori terisi
+        const voteRecords = [];
+        for (let cat of CATEGORIES) {
+            const val = document.getElementById('input_cat_' + cat.id).value;
+            if (!val) {
+                alert('Harap lengkapi balok guru di semua kategori sebelum mengirim voting!');
+                return;
+            }
+            voteRecords.push({
+                category_id: cat.id,
+                teacher_id: parseInt(val, 10)
+            });
+        }
+
+        const safeNameSql = escapeSqlString(rawName);
+        const createdAt = getCurrentSqlTimestamp();
+
+        // Buat perintah SQL gabungan untuk tabel `respondents` dan `votes`
+        // Menggunakan NULL pada kolom `id` (AUTO_INCREMENT) dan LAST_INSERT_ID() agar aman digabungkan dari banyak responden tanpa bentrok Primary Key!
+        let sqlLines = [];
+        sqlLines.push(`-- Hasil Polling Teacher Poll Studio`);
+        sqlLines.push(`-- Responden: ${rawName}`);
+        sqlLines.push(`-- Waktu: ${createdAt}`);
+        sqlLines.push(`START TRANSACTION;`);
+        sqlLines.push(``);
+        sqlLines.push(`-- 1. Menambahkan data ke tabel respondents`);
+        sqlLines.push(`INSERT INTO \`respondents\` (\`id\`, \`respondent_name\`, \`created_at\`) VALUES (NULL, '${safeNameSql}', '${createdAt}');`);
+        sqlLines.push(`SET @last_respondent_id = LAST_INSERT_ID();`);
+        sqlLines.push(``);
+        sqlLines.push(`-- 2. Menambahkan 31 data pilihan ke tabel votes`);
+        sqlLines.push(`INSERT INTO \`votes\` (\`id\`, \`respondent_id\`, \`category_id\`, \`teacher_id\`) VALUES`);
+
+        const valueRows = voteRecords.map((rec, index) => {
+            const comma = (index === voteRecords.length - 1) ? ';' : ',';
+            return `(NULL, @last_respondent_id, ${rec.category_id}, ${rec.teacher_id})${comma}`;
+        });
+
+        sqlLines = sqlLines.concat(valueRows);
+        sqlLines.push(``);
+        sqlLines.push(`COMMIT;`);
+
+        const finalSql = sqlLines.join('\n');
+
+        // Prefix nama file berdasarkan nama lengkap responden
+        const cleanPrefix = rawName
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-_]/g, '')
+            .trim()
+            .replace(/\s+/g, '_');
+        const fileName = `${cleanPrefix || 'responden'}_polling.sql`;
+
+        // Simpan status terkunci di sessionStorage
+        sessionStorage.setItem('poll_submitted', 'true');
+        sessionStorage.setItem('poll_sql_content', finalSql);
+        sessionStorage.setItem('poll_sql_filename', fileName);
+
+        // Tampilkan layar Terima Kasih & otomatis trigger download pertama kali
+        showThankYouScreen(finalSql, fileName);
+        triggerSqlDownload(finalSql, fileName);
+    });
+
+    // Tombol Download Manual di halaman Terima Kasih
+    document.getElementById('btnDownloadSql').addEventListener('click', () => {
+        triggerSqlDownload(generatedSqlContent, generatedFileName);
+    });
+});
+</script>
+</body>
+</html>
