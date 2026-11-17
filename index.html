@@ -415,7 +415,7 @@
         <div class="progress-container" id="progressHeaderBox">
             <div class="progress-info">
                 <span>Progress Polling</span>
-                <span class="progress-counter"><strong id="filledCount">0</strong> / <span id="totalCatDisplay">31</span> Terisi</span>
+                <span class="progress-counter"><strong id="filledCount">0</strong> / <span id="totalCatDisplay">33</span> Terisi</span>
             </div>
             <div class="progress-bar-bg">
                 <div class="progress-bar-fill" id="progressBar" style="width: 0%;"></div>
@@ -441,7 +441,7 @@
                 <div class="workspace-section left-section">
                     <div class="section-title">
                         <h2>🏷️ Kategori Polling</h2>
-                        <span class="badge" id="catCountBadge">31 Kategori</span>
+                        <span class="badge" id="catCountBadge">33 Kategori</span>
                     </div>
                     <div class="categories-grid" id="categoriesGrid"></div>
                 </div>
@@ -450,7 +450,7 @@
                 <div class="workspace-section right-section">
                     <div class="section-title">
                         <h2>📋 Blocks Palette</h2>
-                        <span class="badge badge-blue" id="teacherCountBadge">31 Guru</span>
+                        <span class="badge badge-blue" id="teacherCountBadge">33 Guru</span>
                     </div>
                     <div class="search-box">
                         <span class="search-icon">🔍</span>
@@ -753,7 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Validasi semua 31 kategori terisi
+        // Validasi semua 33 kategori terisi
         const voteRecords = [];
         for (let cat of CATEGORIES) {
             const val = document.getElementById('input_cat_' + cat.id).value;
@@ -782,7 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sqlLines.push(`INSERT INTO \`respondents\` (\`id\`, \`respondent_name\`, \`created_at\`) VALUES (NULL, '${safeNameSql}', '${createdAt}');`);
         sqlLines.push(`SET @last_respondent_id = LAST_INSERT_ID();`);
         sqlLines.push(``);
-        sqlLines.push(`-- 2. Menambahkan 31 data pilihan ke tabel votes`);
+        sqlLines.push(`-- 2. Menambahkan 33 data pilihan ke tabel votes`);
         sqlLines.push(`INSERT INTO \`votes\` (\`id\`, \`respondent_id\`, \`category_id\`, \`teacher_id\`) VALUES`);
 
         const valueRows = voteRecords.map((rec, index) => {
